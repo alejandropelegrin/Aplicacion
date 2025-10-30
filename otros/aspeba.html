@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Priorización de Llamadas de Guardia OVE</title>
+  <link rel="icon" type="image/png" href="michelin.png" sizes="32x32">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .resultado {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .badge-ok {
+      background-color: #28a745;
+      color: #fff;
+    }
+
+    .badge-valorar {
+      background-color: #ffc107;
+      color: #212529;
+    }
+
+    .badge-alerta {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    .section-header {
+      background-color: #007bff;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.5rem;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .subsection {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #007bff;
+      border-radius: 5px;
+    }
+
+    input[readonly] {
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      cursor: not-allowed;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+    }
+
+    .card {
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("michelin.png") no-repeat center center;
+      background-size: contain;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary,
+    .btn-success,
+    .btn-danger {
+      min-width: 120px;
+    }
+
+    .btn-plano {
+      background: none;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 1.2rem;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">
+      <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+      Priorización de Llamadas de Guardia OVE
+      <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+    </h1>
+    <!-- Navegación entre páginas 
+        Para agregar más máquinas, duplicar uno de los botones y cambiar href y texto 
+    -->
+    <h3 class="mb-4 text-center">ASPEBA</h3>
+    <div class="mb-4 text-center">
+      <button class="btn btn-primary me-2" onclick="mostrarTab('aspeba')">ASPEBA</button>
+      <a href="zf.html" class="btn btn-primary me-2">ZF</a>
+      <a href="fset.html" class="btn btn-primary me-2">FSET</a>
+      <a href="paletizado.html" class="btn btn-primary me-2">Paletizado</a>
+    </div>
+
+    <!-- Pestaña ASPEBA 
+       Botones de descargar pdf
+    -->
+    <div id="aspeba" class="tab">
+      <div class="card p-4 mb-5 shadow">
+        <div class="section-header">ASPEBA
+          <button class="btn-plano" onclick="descargarPDF()" title="Descargar PDF">💾</button>
+        </div>
+
+
+    <!-- -------------------------------
+             Selecciones iniciales
+             Para añadir otra selección, crear <select> con id único y manejarlo en actualizarFormularios()
+        ------------------------------- -->
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Equipo afectado:</label>
+            <select id="c2" class="form-select">
+              <option value="SI">IRIS (+ transística entrada y/o salida)</option>
+              <option value="NO">ASPEBA (+ transística entrada y/o salida)</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Taller:</label>
+            <select id="c3" class="form-select">
+              <option value="SI">OVE 1</option>
+              <option value="NO">OVE 2</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">PdP taller:</label>
+          <input type="number" id="c4" class="form-control" oninput="calcularC15()">
+        </div>
+
+        <!-- Aqui van las preguntas que se quiere añadir dentro de cada apartado-->
+        <!-- IRIS -->
+        <div id="bloque-iris">
+          <div class="section-header mt-4">IRIS</div>
+          <div class="subsection">
+            <div class="mb-3">
+              <label class="form-label">Capacidad individual por IRIS (cub/día)</label>
+              <input type="number" id="c7" class="form-control" value="5000" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nº de IRIS en marcha restantes en el taller</label>
+              <input type="number" id="c8" class="form-control" oninput="calcularC15()">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Producción a pasar por IRIS (cub/día)</label>
+              <input type="number" id="c9" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">¿Hay algún código que solo pase por ese IRIS?</label>
+              <select id="c11" class="form-select">
+                <option value="SI">SI</option><option value="NO">NO</option>
+              </select>
+            </div>
+            <div class="mb-3" id="c12-container">
+              <label class="form-label">¿Se puede dejar de pasar el código por IRIS?</label>
+              <select id="c12" class="form-select">
+                <option value="SI">SI</option><option value="NO">NO</option>
+              </select>
+            </div>
+            <div id="resultado-iris" class="resultado badge"></div>
+          </div>
+          <!-- Observaciones IRIS -->
+            <div class="mb-3">
+              <label class="form-label">Observaciones IRIS:</label>
+              <textarea id="obs-iris" class="form-control" rows="3" placeholder="Observaciones del formulario IRIS"></textarea>
+            </div>
+        </div>
+
+        <!-- ASPEBA tras fallo IRIS -->
+        <div id="bloque-aspeba-tras">
+          <div class="section-header mt-4">ASPEBA TRAS FALLO IRIS</div>
+          <div class="subsection">
+            <div class="mb-3">
+              <label class="form-label">ByPass IRIS restantes estimado (%)</label>
+              <input type="number" id="c14" class="form-control" value="40">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Capacidad a pasar por ASPEBA</label>
+              <input type="number" id="c15" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Capacidad por puesto (cub/día)</label>
+              <input type="number" id="c16" class="form-control" value="1800" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Personal disponible</label>
+              <input type="number" id="c17" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nº puestos restantes disponibles</label>
+              <input type="number" id="c18" class="form-control">
+            </div>
+            <div id="resultado-aspeba-tras" class="resultado badge"></div>
+          </div>
+          <!-- Observaciones ASPEBA tras fallo IRIS -->
+            <div class="mb-3">
+              <label class="form-label">Observaciones ASPEBA tras fallo IRIS:</label>
+              <textarea id="obs-aspeba-tras" class="form-control" rows="3" placeholder="Observaciones del formulario ASPEBA tras fallo IRIS"></textarea>
+            </div>
+        </div>
+
+        <!-- ASPEBA (+ transística) -->
+        <div id="bloque-aspeba-trans">
+          <div class="section-header mt-4">ASPEBA (+ transística entrada y/o salida)</div>
+          <div class="subsection">
+            <div class="mb-3">
+              <label class="form-label">ByPass IRIS estimado (%)</label>
+              <input type="number" id="c23" class="form-control" value="40">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">PdP estimado Aspeba (cub/día)</label>
+              <input type="number" id="c24" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Capacidad por puesto (cub/día)</label>
+              <input type="number" id="c25" class="form-control" value="1800" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nº puestos restantes disponibles</label>
+              <input type="number" id="c26" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">¿El puesto es crítico por no polivalencia?</label>
+              <select id="c28" class="form-select">
+                <option value="SI">SI</option><option value="NO">NO</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">¿Se puede parar el código sin polivalencia?</label>
+              <select id="c29" class="form-select">
+                <option value="SI">SI</option><option value="NO">NO</option>
+              </select>
+            </div>
+            <div id="resultado-aspeba-trans" class="resultado badge"></div>
+
+            <!-- Observaciones ASPEBA transística -->
+            <div class="mb-3">
+              <label class="form-label">Observaciones ASPEBA (+ transística):</label>
+              <textarea id="obs-aspeba-trans" class="form-control" rows="3" placeholder="Observaciones del formulario ASPEBA (+ transística)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div id="resultado-aspeba" class="resultado mt-3 badge"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-3" style="color: #555; font-size: 0.9rem;">
+    Sistema de Priorización OVE - Michelin © <span id="anio-footer"></span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    // Mostrar pestañas
+    function mostrarTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+      document.getElementById(tabId).style.display = 'block';
+    }
+
+    // Mostrar/ocultar bloques
+    function actualizarFormularios() {
+      const opcion = document.getElementById("c2").value;
+      document.getElementById("bloque-iris").style.display = "none";
+      document.getElementById("bloque-aspeba-tras").style.display = "none";
+      document.getElementById("bloque-aspeba-trans").style.display = "none";
+
+      if (opcion === "SI") document.getElementById("bloque-iris").style.display = "block";
+      else if (opcion === "NO") document.getElementById("bloque-aspeba-trans").style.display = "block";
+    }
+
+    // Mostrar u ocultar c12 según c11
+    function actualizarC12() {
+      const c11 = document.getElementById("c11").value;
+      document.getElementById("c12-container").style.display = (c11 === "SI") ? "block" : "none";
+    }
+
+    // Sincronizar c9 con c4 al inicio y cuando cambia c4, pero sin mostrar 0
+    function sincronizarC9() {
+      const c4Input = document.getElementById("c4");
+      const c9Input = document.getElementById("c9");
+
+      // Si el usuario no ha editado c9 manualmente
+      if (!c9Input.dataset.edited) {
+        const valorC4 = c4Input.value.trim();
+        // Solo copiar si c4 tiene algún valor
+        if (valorC4 !== "") {
+          c9Input.value = valorC4;
+        } else {
+          c9Input.value = ""; // mantener vacío si PdP taller no tiene nada
+        }
+      }
+    }
+
+    // Marcar cuando el usuario edite manualmente c9
+    document.getElementById("c9").addEventListener("input", () => {
+      document.getElementById("c9").dataset.edited = true;
+    });
+
+    // Actualizar automáticamente c9 si no ha sido editado
+    document.getElementById("c4").addEventListener("input", sincronizarC9);
+
+    // Inicializar al cargar
+    window.addEventListener("load", () => {
+      sincronizarC9();
+      calcularC15();
+      calcularC24();
+      mostrarTab("aspeba");
+      actualizarFormularios();
+    });
+
+    document.getElementById("c2").addEventListener("change", actualizarFormularios);
+    document.getElementById("c11").addEventListener("change", actualizarC12);
+
+    // Cálculos automáticos
+    function calcularC15() {
+      const c4 = parseFloat(document.getElementById("c4").value) || 0;
+      const c7 = parseFloat(document.getElementById("c7").value) || 0;
+      const c8 = parseFloat(document.getElementById("c8").value) || 0;
+      const c14 = parseFloat(document.getElementById("c14").value) || 1;
+      const c15 = c4 - (c7 * c8 * (c14 / 100));
+      document.getElementById("c15").value = Number.isFinite(c15) ? c15 : 0;
+      calcularC24();
+      return c15;
+    }
+
+    function calcularC24() {
+      const c4 = parseFloat(document.getElementById("c4").value) || 0;
+      const c23 = parseFloat(document.getElementById("c23").value) || 0;
+      const c24 = c4 - (c4 * (c23 / 100));
+      document.getElementById("c24").value = Number.isFinite(c24) ? c24 : 0;
+      return c24;
+    }
+
+    // Mostrar resultado
+    function mostrarResultado(elementId, resultado) {
+      const div = document.getElementById(elementId);
+      if (!div) return;
+      div.innerText = resultado;
+      div.className = "resultado badge";
+      if (resultado.includes("⚠ Llamar Guardia")) div.classList.add("badge-alerta");
+      else if (resultado.includes("Valorar ASPEBA")) div.classList.add("badge-valorar");
+      else div.classList.add("badge-ok");
+    }
+
+    // Evaluaciones (si es llmaar guardia ,valorar aspeba, ok)
+    function evaluarIRIS() {
+      const c7 = parseFloat(document.getElementById("c7").value) || 0;
+      const c8 = parseFloat(document.getElementById("c8").value) || 0;
+      const c9 = parseFloat(document.getElementById("c9").value) || 0;
+      const c11 = document.getElementById("c11").value;
+      const c12 = document.getElementById("c12").value;
+
+      let resultado = "OK";
+      if (c11 === "SI" && c12 === "NO") resultado = "⚠ Llamar Guardia";
+      else if (c9 > (c7 * c8)) resultado = "Valorar ASPEBA";
+
+      mostrarResultado("resultado-iris", resultado);
+
+      document.getElementById("bloque-aspeba-tras").style.display = resultado.includes("Valorar ASPEBA") ? "block" : "none";
+    }
+
+    function evaluarAspebaTrasFalloIRIS() {
+      const c15 = calcularC15();
+      const c16 = parseFloat(document.getElementById("c16").value) || 0;
+      const c17 = parseFloat(document.getElementById("c17").value) || 0;
+      const c18 = parseFloat(document.getElementById("c18").value) || 0;
+      const c29 = document.getElementById("c29").value;
+      const resultadoIRIS = document.getElementById("resultado-iris").innerText || "";
+
+      let resultado = "OK";
+      if (c17 > 0 && c18 > 0 && resultadoIRIS.includes("Valorar ASPEBA") && (c15 > c16 * Math.min(c17, c18))) resultado = "⚠ Llamar Guardia";
+      if (c29 === "NO") resultado = "⚠ Llamar Guardia";
+      mostrarResultado("resultado-aspeba-tras", resultado);
+    }
+
+    function evaluarAspebaTransistica() {
+      const c24 = calcularC24();
+      const c25 = parseFloat(document.getElementById("c25").value) || 0;
+      const c26 = parseFloat(document.getElementById("c26").value) || 0;
+      const c29 = document.getElementById("c29").value;
+
+      let resultado = "OK";
+      if (c26 === 0 || c24 > c25 * c26 || c29 === "NO") resultado = "⚠ Llamar Guardia";
+      mostrarResultado("resultado-aspeba-trans", resultado);
+    }
+
+    // crear PDF
+    async function descargarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const pageWidth = 210;
+      const margin = 10;
+      const tableWidth = pageWidth - 2 * margin;
+      const lineHeight = 6;
+      let y = 35;
+
+      // --- ENCABEZADO ---
+      doc.setFontSize(18);
+      doc.setTextColor(0, 51, 153);
+      doc.text("Priorización de Llamadas Guardia OVE - ASPEBA", margin, 20);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generado: ${new Date().toLocaleString()}`, pageWidth - margin, 20, { align: "right" });
+      doc.line(margin, 25, pageWidth - margin, 25);
+
+      // --- FUNCION PARA GENERAR TABLAS Y OBSERVACIONES ---
+      function agregarTabla(campos, titulo, resElemento, obsElemento) {
+        if (y + 50 > 285) { doc.addPage(); y = 20; }
+
+        // Cabecera
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(titulo, margin, y);
+        y += 6;
+
+        doc.setFontSize(11);
+        doc.setFillColor(0, 123, 255);
+        doc.setTextColor(255, 255, 255);
+        doc.rect(margin, y, tableWidth, lineHeight, 'F');
+        doc.setDrawColor(0);
+        doc.rect(margin, y, tableWidth, lineHeight);
+        doc.text("Campo", margin + 2, y + 4.5);
+        doc.text("Valor", margin + tableWidth - 45, y + 4.5);
+        y += lineHeight;
+
+        // Filas
+        campos.forEach((id, index) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+
+          let valor = el.options ? el.options[el.selectedIndex].text : (el.value || "—");
+          if (id === "c3") valor = valor.toUpperCase() === "SI" ? "OVE1" : "OVE2";
+
+          const label = el.parentElement.querySelector("label")?.innerText || id;
+
+          doc.setFillColor(index % 2 === 0 ? 240 : 255);
+          doc.rect(margin, y, tableWidth, lineHeight, 'F');
+          doc.setDrawColor(0);
+          doc.rect(margin, y, tableWidth, lineHeight);
+
+          const linesLabel = doc.splitTextToSize(label, tableWidth - 50);
+          const linesValor = doc.splitTextToSize(valor, 40);
+          const maxLines = Math.max(linesLabel.length, linesValor.length);
+
+          for (let i = 0; i < maxLines; i++) {
+            doc.setTextColor(0, 0, 0);
+            doc.text(linesLabel[i] || '', margin + 2, y + 4 + i * 5);
+            doc.text(linesValor[i] || '', margin + tableWidth - 45, y + 4 + i * 5);
+          }
+          y += lineHeight * maxLines;
+          if (y > 260) { doc.addPage(); y = 20; }
+        });
+
+        // Resultado
+        if (resElemento) {
+          y += 4;
+          const res = document.getElementById(resElemento)?.innerText || "—";
+          let colorRes = [40, 167, 69];
+          if (res.toLowerCase().includes("llamar")) colorRes = [220, 53, 69];
+          else if (res.toLowerCase().includes("valorar")) colorRes = [255, 193, 7];
+
+          y += 5;
+          doc.setFontSize(12);
+          doc.setTextColor(0, 0, 0);
+          doc.text("Resultado:", margin, y);
+          doc.setTextColor(...colorRes);
+          doc.text(res, margin + 50, y);
+          y += 10;
+        }
+
+        // Observaciones
+        if (obsElemento) {
+          const obs = document.getElementById(obsElemento)?.value || "—";
+          y += 2;
+          doc.setFontSize(12);
+          doc.setTextColor(0, 0, 0);
+          doc.text("Observaciones:", margin, y);
+          y += 6;
+          const linesObs = doc.splitTextToSize(obs, tableWidth);
+          linesObs.forEach(line => {
+            if (y > 275) { doc.addPage(); y = 20; }
+            doc.text(line, margin, y);
+            y += 6;
+          });
+          y += 8;
+        }
+      }
+
+      // --- GENERAR TABLAS ---
+      agregarTabla(["c2", "c3", "c4"], "Respuestas formulario ASPEBA", null);
+
+      y += 10;
+
+      const c2 = document.getElementById("c2")?.value;
+      const resIRIS = document.getElementById("resultado-iris")?.innerText || "—";
+
+      if (c2 === "NO") {
+        agregarTabla(
+          ["c23","c24","c25","c26","c28","c29"],
+          "Formulario ASPEBA (+ transística entrada y/o salida)",
+          "resultado-aspeba-trans",
+          "obs-aspeba-trans"
+        );
+      } else {
+        if (resIRIS !== "OK" || c2 === "SI") {
+          agregarTabla(
+            ["c7","c8","c9","c11","c12"],
+            "Formulario IRIS",
+            "resultado-iris",
+            "obs-iris"
+          );
+        }
+        if (resIRIS.toLowerCase().includes("valorar")) {
+          agregarTabla(
+            ["c14","c15","c16","c17","c18"],
+            "Formulario ASPEBA tras fallo IRIS",
+            "resultado-aspeba-tras",
+            "obs-aspeba-tras"
+          );
+        }
+      }
+
+      // --- PIE DE PÁGINA ---
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      const anioActual = new Date().getFullYear();
+      doc.text(`Sistema de Priorización OVE - Michelin © ${anioActual}`, pageWidth/2, 285, {align:"center"});
+
+      // --- GUARDAR PDF ---
+      const nombreArchivo = `Priorizacion_Guardia_ASPEBA_${new Date().toISOString().slice(0,10)}.pdf`;
+
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: nombreArchivo,
+            startIn: 'documents',
+            types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(await doc.output("blob"));
+          await writable.close();
+          alert("PDF guardado correctamente");
+        } catch(err) {
+          console.error("Guardado cancelado o error:", err);
+        }
+      } else {
+        doc.save(nombreArchivo);
+      }
+    }
+
+    // Eventos
+    document.getElementById("c4").addEventListener("input", calcularC24);
+    document.getElementById("c23").addEventListener("input", calcularC24);
+    ["c7", "c8", "c9", "c11", "c12"].forEach(id => { document.getElementById(id).addEventListener("input", evaluarIRIS); document.getElementById(id).addEventListener("change", evaluarIRIS); });
+    ["c16", "c17", "c18", "c29"].forEach(id => { document.getElementById(id).addEventListener("input", evaluarAspebaTrasFalloIRIS); document.getElementById(id).addEventListener("change", evaluarAspebaTrasFalloIRIS); });
+    ["c25", "c26", "c29"].forEach(id => { document.getElementById(id).addEventListener("input", evaluarAspebaTransistica); document.getElementById(id).addEventListener("change", evaluarAspebaTransistica); });
+
+    document.getElementById("anio-footer").textContent = new Date().getFullYear();
+  </script>
+</body>
+
+</html>

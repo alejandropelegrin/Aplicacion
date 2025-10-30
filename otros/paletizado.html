@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Priorización de Llamadas de Guardia OVE</title>
+  <link rel="icon" type="image/png" href="michelin.png" sizes="32x32">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .resultado {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .badge-ok {
+      background-color: #28a745;
+      color: #fff;
+    }
+
+    .badge-valorar {
+      background-color: #ffc107;
+      color: #212529;
+    }
+
+    .badge-alerta {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    .section-header {
+      background-color: #007bff;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.5rem;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .subsection {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #007bff;
+      border-radius: 5px;
+    }
+
+    input[readonly] {
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+      cursor: not-allowed;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+    }
+
+    .card {
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("michelin.png") no-repeat center center;
+      background-size: contain;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary,
+    .btn-success,
+    .btn-danger {
+      min-width: 120px;
+    }
+
+    .btn-plano {
+      background: none;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 1.2rem;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">
+      <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+      Priorización de Llamadas de Guardia OVE
+      <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+    </h1>
+
+    <h3 class="mb-4 text-center">PALETIZADO</h3>
+
+    <!-- Navegacion entre formularios
+      El botón Paletizado no tiene enlace porque es la página actual
+      Para agregar más formularios, copiar este bloque y ajustar los enlaces y textos correspondientes
+    -->
+    <div class="mb-4 text-center">
+      <a href="aspeba.html" class="btn btn-primary me-2">ASPEBA</a>
+      <a href="zf.html" class="btn btn-primary me-2">ZF</a>
+      <a href="fset.html" class="btn btn-primary me-2">FSET</a>
+      <a class="btn btn-primary me-2">Paletizado</a>
+    </div>
+
+    <div class="card p-4 position-relative">
+      <div class="section-header">
+        Paletizado
+        <button class="btn-plano" onclick="descargarPDF()" title="Descargar PDF">💾</button>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Taller:</label>
+          <select id="tipo-ove" class="form-select" onchange="mostrarFormulario()">
+            <option value="ove1">OVE 1</option>
+            <option value="ove2">OVE 2</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Aqui se añaden las preguntas que se quiere hacer, cada una en su apartado -->
+      <!-- FORMULARIOS ROBOT -->
+      <div id="form-robot-ove1" class="tab">
+        <div class="subsection">
+          <label class="form-label">Capacidad individual por Robot</label>
+          <input type="number" class="form-control" value="4500" readonly>
+          <label class="form-label mt-2">N° de Robots en marcha restantes en el taller</label>
+          <input type="number" class="form-control">
+          <label class="form-label mt-2">Saturación de FSETs (%)</label>
+          <input type="text" class="form-control">
+          <label class="form-label mt-2">¿Hay algún código que solo pase por ese Robot?</label>
+          <select class="form-select">
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+          <label class="form-label mt-2">¿Se puede paletizar el código por otro Robot? ¿En Manual?</label>
+          <select class="form-select">
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="resultado badge badge-ok" style="display:none"></div>
+        <div class="mb-3 mt-3">
+          <label class="form-label">Observaciones Paletizado:</label>
+          <textarea id="obs-paletizado-ove1" class="form-control" rows="3"
+            placeholder="Observaciones del formulario Paletizado OVE1"></textarea>
+        </div>
+      </div>
+
+      <div id="form-robot-ove2" class="tab">
+        <div class="subsection">
+          <label class="form-label">Capacidad individual por Robot</label>
+          <input type="number" class="form-control" value="4500" readonly>
+          <label class="form-label mt-2">N° de Robots en marcha restantes en el taller</label>
+          <input type="number" class="form-control">
+          <label class="form-label mt-2">Saturación de FSETs (%)</label>
+          <input type="text" class="form-control">
+          <label class="form-label mt-2">¿Hay algún código que solo pase por ese Robot?</label>
+          <select class="form-select">
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+          <label class="form-label mt-2">¿Se puede paletizar el código por otro Robot? ¿En Manual?</label>
+          <select class="form-select">
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="resultado badge badge-ok" style="display:none"></div>
+        <!-- Observaciones después del resultado -->
+        <div class="mb-3 mt-3">
+          <label class="form-label">Observaciones Paletizado:</label>
+          <textarea id="obs-paletizado-ove2" class="form-control" rows="3"
+            placeholder="Observaciones del formulario Paletizado OVE2"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-3" style="color: #555; font-size: 0.9rem;">
+    Sistema de Priorización OVE - Michelin © <span id="anio-footer"></span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    // Mostrar el formulario según el taller seleccionado
+    function mostrarFormulario() {
+      const ove = document.getElementById("tipo-ove").value;
+      document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+      const form = document.getElementById(`form-robot-${ove}`);
+      form.style.display = 'block';
+      
+      // Control dinámico de la segunda pregunta
+      const selects = form.querySelectorAll("select");
+      const codigoSolo = selects[0]; // primer select: ¿Hay algún código que solo pase por ese Robot?
+      const otroRobot = selects[1]; // segundo select: ¿Se puede paletizar por otro Robot?
+      const otroRobotLabel = otroRobot.previousElementSibling;
+
+      function toggleOtroRobot() {
+        if (codigoSolo.value === "no") {
+          otroRobot.style.display = "none";
+          otroRobotLabel.style.display = "none";
+        } else {
+          otroRobot.style.display = "block";
+          otroRobotLabel.style.display = "block";
+        }
+      }
+
+      // inicial
+      toggleOtroRobot();
+
+      // cuando cambie la primera pregunta
+      codigoSolo.addEventListener('change', toggleOtroRobot);
+
+      evaluarGuardia();
+    }
+
+    document.querySelectorAll('select').forEach(el => {
+      el.addEventListener('change', function () {
+        // Mostrar u ocultar la segunda pregunta según la primera
+        if (this.previousElementSibling?.innerText.includes("¿Hay algún código")) {
+          const div = this.closest('.subsection');
+          const segundoSelect = div.querySelectorAll('select')[1];
+          if (this.value === "no") {
+            segundoSelect.style.display = 'none';
+            segundoSelect.value = ""; // Resetear valor
+          } else {
+            segundoSelect.style.display = 'block';
+          }
+        }
+        evaluarGuardia();
+      });
+    });
+
+    // Evaluar si llamar a guardia según las respuestas
+    function evaluarGuardia() {
+      const forms = [
+        { id: "form-robot-ove1", minNum: 3, minSat: 80 },
+        { id: "form-robot-ove2", minNum: 2, minSat: 80 }
+      ];
+
+      forms.forEach(f => {
+        const div = document.getElementById(f.id);
+        if (div.style.display !== "block") return;
+
+        const inputs = div.querySelectorAll("input");
+        const selects = div.querySelectorAll("select");
+
+        const numRobots = inputs[1].value;
+        const saturacion = inputs[2].value;
+
+        const codigoSolo = selects[0].value;
+        const paletizarOtro = (selects[1].style.display !== "none") ? selects[1].value : "—";
+
+        if (numRobots && saturacion && codigoSolo) {
+          const llamar = (parseInt(numRobots) < f.minNum) ||
+                        (parseFloat(saturacion) < f.minSat) ||
+                        (codigoSolo === "si" && paletizarOtro === "no");
+
+          mostrarBadge(div, llamar);
+        } else {
+          const badge = div.querySelector(".resultado");
+          if (badge) badge.style.display = "none";
+        }
+      });
+    }
+
+    // Función para mostrar el badge de resultado (llamar guardia o ok)
+    function mostrarBadge(div, llamar) {
+      let badge = div.querySelector(".resultado");
+      if (!badge) {
+        badge = document.createElement("div");
+        badge.classList.add("resultado", "badge");
+        div.appendChild(badge);
+      }
+      badge.style.display = "inline-block";
+      badge.innerText = llamar ? "⚠ Llamar Guardia" : "OK";
+      badge.className = "resultado badge " + (llamar ? "badge-alerta" : "badge-ok");
+    }
+
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', evaluarGuardia);
+      el.addEventListener('change', evaluarGuardia);
+    });
+
+    window.onload = function () {
+      document.getElementById("anio-footer").textContent = new Date().getFullYear();
+      mostrarFormulario();
+    }
+
+    // Función para descargar el PDF con los datos del formulario actual
+    async function descargarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const pageWidth = 210;
+      const margin = 10;
+      const tableWidth = pageWidth - 2 * margin;
+      const lineHeight = 6;
+      let y = 40;
+
+      // --- ENCABEZADO ---
+      doc.setFontSize(18);
+      doc.setTextColor(0, 51, 153);
+      doc.text("Priorización de Llamadas Guardia OVE - Paletizado", margin, 20);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generado: ${new Date().toLocaleString()}`, pageWidth - margin, 28, { align: "right" });
+      doc.line(margin, 33, pageWidth - margin, 33);
+
+      // --- FORMULARIO ACTUAL ---
+      const oveSelect = document.getElementById("tipo-ove");
+      const ove = oveSelect.value.toUpperCase();
+      const form = document.getElementById(`form-robot-${ove.toLowerCase()}`);
+      const obsText = document.getElementById(`obs-paletizado-${ove.toLowerCase()}`)?.value || "";
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Formulario Paletizado - ${ove}`, margin, y);
+      y += 6;
+
+      // --- Cabecera de tabla ---
+      doc.setFontSize(11);
+      doc.setFillColor(0, 123, 255);
+      doc.setTextColor(255, 255, 255);
+      doc.rect(margin, y, tableWidth, lineHeight, 'F');
+      doc.rect(margin, y, tableWidth, lineHeight);
+      doc.text("Campo", margin + 2, y + 4.5);
+      doc.text("Valor", margin + tableWidth - 45, y + 4.5);
+      y += lineHeight;
+
+      // --- Campos incluyendo OVE como primer campo ---
+      const fields = [{ label: "Taller", value: ove }];
+      const inputs = form.querySelectorAll("input, select");
+      inputs.forEach(el => {
+        const labelEl = el.previousElementSibling;
+        const label = labelEl?.tagName.toLowerCase() === "label" ? labelEl.innerText.trim() : "Campo";
+
+        // Si es la segunda pregunta y está oculta, no agregar
+        if (label.includes("paletizar") && el.style.display === "none") return;
+
+        fields.push({ label, value: el.value || "—" });
+      });
+
+      // --- Dibujar tabla ---
+      fields.forEach((f, index) => {
+        doc.setFillColor(index % 2 === 0 ? 240 : 255);
+        doc.rect(margin, y, tableWidth, lineHeight, 'F');
+        doc.rect(margin, y, tableWidth, lineHeight);
+
+        const linesLabel = doc.splitTextToSize(f.label, tableWidth - 50);
+        const linesValor = doc.splitTextToSize(f.value, 40);
+        const maxLines = Math.max(linesLabel.length, linesValor.length);
+
+        for (let i = 0; i < maxLines; i++) {
+          doc.setTextColor(0, 0, 0);
+          doc.text(linesLabel[i] || '', margin + 2, y + 4 + i * 5);
+          doc.text(linesValor[i] || '', margin + tableWidth - 45, y + 4 + i * 5);
+        }
+
+        y += lineHeight * maxLines;
+        if (y > 260) { doc.addPage(); y = 20; }
+      });
+
+      y += 10;
+
+      // --- RESULTADO ---
+      const resText = form.querySelector(".resultado")?.innerText || "—";
+      let color = [40, 167, 69];
+      if (resText.toLowerCase().includes("llamar")) color = [220, 53, 69];
+      else if (resText.toLowerCase().includes("valorar")) color = [255, 193, 7];
+
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Resultado Paletizado:", margin, y);
+      doc.setTextColor(...color);
+      doc.text(resText, margin + 50, y);
+      y += 10;
+
+      // --- OBSERVACIONES ---
+      if (obsText.trim()) {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text("Observaciones:", margin, y);
+        y += 6;
+        const linesObs = doc.splitTextToSize(obsText, tableWidth);
+        linesObs.forEach(line => {
+          if (y > 275) { doc.addPage(); y = 20; }
+          doc.text(line, margin, y);
+          y += 6;
+        });
+        y += 6;
+      }
+
+      // --- PIE DE PÁGINA ---
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      doc.text(`Sistema de Priorización OVE - Michelin © ${new Date().getFullYear()}`, pageWidth / 2, 285, { align: "center" });
+
+      // --- GUARDAR PDF ---
+      const nombreArchivo = `Priorizacion_Guardia_Paletizado_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: nombreArchivo,
+            startIn: 'documents',
+            types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+          });
+          if (!handle) return;
+          const writable = await handle.createWritable();
+          await writable.write(await doc.output("blob"));
+          await writable.close();
+          alert("PDF guardado correctamente");
+        } catch (err) {
+          if (err.name === "AbortError") return;
+          console.error("Error al guardar PDF:", err);
+        }
+      } else {
+        doc.save(nombreArchivo);
+      }
+    }
+
+  </script>
+</body>
+
+</html>

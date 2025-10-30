@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Priorización de Llamadas de Guardia OVE</title>
+<link rel="icon" type="image/png" href="michelin.png" sizes="32x32">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+  }
+
+  .tab { display: none; }
+
+  .resultado {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
+    display: inline-block;
+  }
+
+  .badge-ok { background-color: #28a745; color: #fff; }
+  .badge-valorar { background-color: #ffc107; color: #212529; }
+  .badge-alerta { background-color: #dc3545; color: #fff; }
+
+  .section-header {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.5rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .subsection {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #007bff;
+    border-radius: 5px;
+  }
+
+  input[readonly] {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    cursor: not-allowed;
+  }
+
+  input:focus, select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  }
+
+  .card {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("michelin.png") no-repeat center center;
+    background-size: contain;
+    opacity: 0.04; /* más bajo = más transparente */
+    pointer-events: none; /* evita que bloquee los clics */
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .btn-primary, .btn-success, .btn-danger {
+    min-width: 120px;
+  }
+
+  .btn-plano {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 10px;
+  }
+
+</style>
+</head>
+<body>
+<div class="container py-5">
+  <h1 class="mb-4 text-center">
+    <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+    Priorización de Llamadas de Guardia OVE
+    <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+  </h1>
+
+  <h3 class="mb-4 text-center">
+    CIBERNETICS
+  </h3>
+
+  <div class="mb-4 text-center">
+    <a href="aspeba.html" class="btn btn-primary me-2">ASPEBA</a>
+    <a href="zf.html" class="btn btn-primary me-2">ZF</a>
+    <a href="fset.html" class="btn btn-primary me-2">FSET</a>
+    <a href="paletizado.html" class="btn btn-primary me-2">Paletizado</a>
+    <button class="btn btn-primary me-2" onclick="mostrarTab('cibernetics')">Cibernetics</button>
+  </div>
+
+  <div id="tab-cibernetics" class="tab" style="display:block;">
+    <div class="card p-4 position-relative">
+        <!-- FORMULARIO CIBERNETICS -->
+        <div class="section-header">Formulario de Cibernetics
+          <button class="btn-plano" onclick="imprimir()" title="Imprimir">🖨️</button>
+          <button class="btn-plano" onclick="descargarPDF()" title="Descargar PDF">💾</button>
+        </div>
+        <div class="subsection">
+          <!-- Aquí van los campos del formulario -->
+          <p>Contenido del formulario de Cibernetics...</p>
+        </div>
+
+      <!-- ==================== RESULTADO FINAL ==================== -->
+      <div id="resultado-cibernetics" class="resultado mt-3 badge"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="text-center py-3" style="color: #555; font-size: 0.9rem;">
+  Sistema de Priorización OVE - Michelin © <span id="anio-footer"></span>
+</footer>
+
+<script>
+
+    // Función para mostrar la pestaña seleccionada
+    function mostrarTab(tabId) {
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+        tab.style.display = (tab.id === 'tab-' + tabId) ? 'block' : 'none';
+        });
+    }
+
+    // Funcion para imprimir los resultados
+    function imprimir() {
+      window.print();
+    }
+
+document.getElementById("anio-footer").textContent = new Date().getFullYear();
+
+</script>
+</body>
+</html>

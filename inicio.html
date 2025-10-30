@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Priorización de Llamadas de Guardia OVE</title>
+  <link rel="icon" type="image/png" href="otros/michelin.png" sizes="32x32">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* === ESTILO GENERAL === */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #cce0f5 0%, #007bff 100%);
+    }
+
+    .card {
+      max-width: 600px;
+      width: 100%;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      background-color: #fff;
+      position: relative;
+      opacity: 0;
+      animation: fadeInUp 1s ease forwards;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("otros/michelin.png") no-repeat center center;
+      background-size: contain;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    /* === LOGO === */
+    .logo {
+      display: block;
+      margin: 0 auto 15px auto;
+      height: 70px;
+      width: auto;
+      object-fit: contain;
+      opacity: 0;
+      transform: scale(0.9);
+      animation: fadeZoomIn 1s ease forwards;
+    }
+
+    /* === TITULO === */
+    .card h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #007bff;
+      animation: fadeInText 1s ease 0.5s forwards;
+      opacity: 0;
+    }
+
+    /* === BOTONES === */
+    .btn-machine {
+      width: 100%;
+      margin: 0.4rem 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 0.75rem;
+      transition: all 0.2s ease;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    /* Animación escalonada */
+    .btn-machine:nth-child(1) { animation-delay: 1s; }
+    .btn-machine:nth-child(2) { animation-delay: 1.15s; }
+    .btn-machine:nth-child(3) { animation-delay: 1.3s; }
+    .btn-machine:nth-child(4) { animation-delay: 1.45s; }
+    .btn-machine:nth-child(5) { animation-delay: 1.6s; }
+    .btn-machine:nth-child(6) { animation-delay: 1.75s; }
+    .btn-machine:nth-child(7) { animation-delay: 1.9s; }
+
+    .btn-machine:hover {
+      transform: scale(1.03);
+    }
+
+    /* === FOOTER === */
+    footer {
+      position: fixed;
+      bottom: 10px;
+      font-size: 0.85rem;
+      color: #fff;
+      opacity: 0;
+      animation: fadeInText 1s ease 2s forwards;
+    }
+
+    /* === ANIMACIONES === */
+    @keyframes fadeZoomIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInText {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Aqui se añaden los botones de las maquias que hay con sus respectivos enlaces a sus páginas 
+       Para agregar más máquinas, copiar el bloque de código del botón y ajustar el enlace y texto correspondiente 
+  -->
+  <div class="card shadow">
+    <img src="otros/michelin.png" alt="Logo Michelin" class="logo">
+    <h1>Priorización de Llamadas de Guardia OVE</h1>
+    <p class="text-muted mb-4">Selecciona la máquina que deseas consultar:</p>
+    <div class="d-grid gap-2">
+      <a href="otros/aspeba.html" class="btn btn-primary btn-machine">ASPEBA</a>
+      <a href="otros/zf.html" class="btn btn-primary btn-machine">ZF</a>
+      <a href="otros/fset.html" class="btn btn-primary btn-machine">FSET</a>
+      <a href="otros/paletizado.html" class="btn btn-primary btn-machine">Paletizado</a>
+      <!--<a href="cibernetics.html" class="btn btn-primary btn-machine">Cibernetics</a> -->
+    </div>
+  </div>
+
+  <footer class="text-center py-3" style="color: #555; font-size: 0.9rem;">
+    Sistema de Priorización OVE - Michelin © <span id="anio-footer"></span>
+  </footer>
+
+<script>
+  // Actualizar el año en el footer
+  document.getElementById("anio-footer").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Priorización de Llamadas de Guardia OVE</title>
+<link rel="icon" type="image/png" href="michelin.png" sizes="32x32">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+  }
+
+  .tab { display: none; }
+
+  .resultado {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
+    display: inline-block;
+  }
+
+  .badge-ok { background-color: #28a745; color: #fff; }
+  .badge-valorar { background-color: #ffc107; color: #212529; }
+  .badge-alerta { background-color: #dc3545; color: #fff; }
+
+  .section-header {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.5rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .subsection {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #007bff;
+    border-radius: 5px;
+  }
+
+  input[readonly] {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    cursor: not-allowed;
+  }
+
+  input:focus, select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("michelin.png") no-repeat center center;
+    background-size: contain;
+    opacity: 0.04; /* más bajo = más transparente */
+    pointer-events: none; /* evita que bloquee los clics */
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .btn-primary {
+    min-width: 120px;
+  }
+
+  .btn-plano {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 10px;
+  }
+
+</style>
+</head>
+<body>
+<div class="container py-5">
+  <h1 class="mb-4 text-center">
+    <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+    Priorización de Llamadas de Guardia OVE
+    <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+  </h1>
+
+  <h3 class="mb-4 text-center">
+    ZF
+  </h3>
+
+  <!-- Navegacion entre formularios
+      El botón zf no tiene enlace porque es la página actual
+      Para agregar más formularios, copiar este bloque y ajustar los enlaces y textos correspondientes
+    
+  -->
+  <!-- BOTONES DE NAVEGACIÓN -->
+  <div class="mb-4 text-center">
+    <a href="aspeba.html" class="btn btn-primary me-2">ASPEBA</a>
+    <button class="btn btn-primary me-2" onclick="mostrarTab('zf')">ZF</button>
+    <a href="fset.html" class="btn btn-primary me-2">FSET</a>
+    <a href="paletizado.html" class="btn btn-primary me-2">Paletizado</a>
+    <!--<a href="cibernetics.html" class="btn btn-primary me-2">Cibernetics</a> -->
+  </div>
+
+  <!-- FORMULARIO ZF -->  
+    <div class="card p-4 mb-5 shadow">
+      <div class="section-header">ZF
+        <button class="btn-plano" onclick="descargarPDF()" title="Descargar PDF">💾</button>
+      </div>
+
+      <div id="zf" class="tab">
+      <div class="mb-3">
+        <label class="form-label">Taller:</label>
+        <select id="c2" class="form-select">
+          <option value="SI">OVE 2</option>
+          <option value="NO">OVE 1</option>
+        </select>
+      </div>
+
+      <!-- Aqui se añaden las preguntas que se quieren hacer cada una en su apartado-->
+      <!-- ZF -->
+      <div class="subsection">
+        <div class="row">
+          <div class="col-md-4 mb-3"><label class="form-label">PdP dimensión afectada</label><input type="number" id="c4"
+              class="form-control"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Cantidad OE dimensión afectada</label><input type="number"
+              id="c5" class="form-control"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Cantidad RT dimensión afectada</label><input type="number"
+              id="c6" class="form-control"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Estimación RT uniformidad (%)</label><input type="number"
+              id="c7" class="form-control" step="0.01"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Capacidad uniformidad necesario</label><input type="number"
+              id="c8" class="form-control" readonly></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Capacidad individual ZF (cub/día)</label><input
+              type="number" id="c10" class="form-control" value="1850" readonly></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Nº ZFs en marcha misma dimensión</label><input
+              type="number" id="c11" class="form-control"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Capacidad restante dimensión afectada</label><input
+              type="number" id="c12" class="form-control" readonly></div>
+          <div class="col-md-4 mb-3"><label class="form-label">¿Código sin polivalencia en otra ZF?</label><select id="c13"
+              class="form-select">
+              <option value="SI">SI</option>
+              <option value="NO">NO</option>
+            </select></div>
+          <div class="col-md-4 mb-3"><label class="form-label">¿Se puede parar el código?</label><select id="c14"
+              class="form-select">
+              <option value="SI">SI</option>
+              <option value="NO">NO</option>
+            </select></div>
+        </div>
+
+        <div id="resultado-iris" class="resultado badge"></div>
+      </div>
+      <!-- OBSERVACIONES ZF -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Observaciones ZF:</label>
+          <textarea id="obs-zf" class="form-control" rows="3" placeholder="Escribe aquí observaciones sobre ZF..."></textarea>
+        </div>
+  
+      <!-- FSET -->
+      <div id="bloque-fset" style="display:none;">
+        <div class="section-header mt-4">FSET</div>
+        <div class="subsection">
+          <div class="row">
+          <div class="col-md-4 mb-3"><label class="form-label">Excedente uniformidad (cub/día)</label><input type="number"
+              id="c18" class="form-control" readonly></div>
+          <div class="col-md-4 mb-3"><label class="form-label">cub/h</label><input type="number" id="c19"
+              class="form-control" readonly></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Stock FSET (uniformidad)</label><input type="number"
+              id="c20" class="form-control"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Porcentaje ocupación (%)</label><input type="number"
+              id="c21" class="form-control" step="0.01"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Horas hasta llegada asistencia sin llamar guardia
+              (h)</label><input type="number" id="c23" class="form-control" step="0.01"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Duración estimada de la intervención (h)</label><input
+              type="number" id="c24" class="form-control" step="0.01"></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Horas totales de parada sin llamada (h)</label><input
+              type="number" id="c25" class="form-control" step="0.01" readonly></div>
+          <div class="col-md-4 mb-3"><label class="form-label">Máxima ocupación FSET (%)</label><input type="number"
+              id="c26" class="form-control" step="0.01"></div>
+          </div>
+              <div id="resultado-aspeba-tras" class="resultado badge"></div>
+        </div>
+       
+        <!-- OBSERVACIONES FSET -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Observaciones FSET:</label>
+          <textarea id="obs-fset" class="form-control" rows="3" placeholder="Escribe aquí observaciones sobre FSET..."></textarea>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+  </div>
+
+  <footer class="text-center py-3" style="color: #555; font-size: 0.9rem;">
+    Sistema de Priorización OVE - Michelin © <span id="anio-footer"></span>
+  </footer>
+
+  <!-- Agrega esta librería justo antes del cierre del </body> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+
+// Función para mostrar la pestaña seleccionada
+function mostrarTab(tabId){
+  document.querySelectorAll('.tab').forEach(t=>t.style.display='none');
+  document.getElementById(tabId).style.display='block';
+}
+
+mostrarTab('zf');
+
+// Función para mostrar resultados
+function mostrarResultado(elementId, resultado){
+  const div=document.getElementById(elementId);
+  div.innerText=resultado;
+  div.className="resultado badge";
+  if(resultado.includes("⚠ Llamar Guardia")) div.classList.add("badge-alerta");
+  else if(resultado.includes("Valorar") || resultado.includes("Valorar FSET")) div.classList.add("badge-valorar");
+  else div.classList.add("badge-ok");
+}
+
+// Evalucación de ZF y FSET
+function evaluarZF() {
+  const C5 = parseFloat(document.getElementById("c5").value) || 0;
+  const C6 = parseFloat(document.getElementById("c6").value) || 0;
+  const C7 = parseFloat(document.getElementById("c7").value) || 0;
+  const C10 = parseFloat(document.getElementById("c10").value) || 0;
+  const C11 = parseFloat(document.getElementById("c11").value) || 0;
+  const C14 = document.getElementById("c14").value;
+  const C8 = C5 + C6 * C7/100;
+  const C12 = C10 * C11;
+
+  let E4 = "OK";
+
+  if (C14 === "NO") E4 = "⚠ Llamar Guardia";
+  else if (C14 === "SI" && C8 > C12) E4 = "Valorar FSET";
+  
+  const C18 = E4 === "Valorar FSET" ? C8 - C12 : 0;
+  const C19 = C18 / 24;
+
+  document.getElementById("c8").value = C8;
+  document.getElementById("c12").value = C12;
+  document.getElementById("resultado-iris").innerText = E4;
+  document.getElementById("c18").value = C18;
+  document.getElementById("c19").value = C19;
+
+  mostrarResultado("resultado-iris", E4);
+
+  const bloqueFSET = document.getElementById("bloque-fset");
+  if (E4 === "Valorar FSET") {
+    bloqueFSET.style.display = "block";
+    evaluarFSET();
+  } else bloqueFSET.style.display = "none";
+}
+
+function evaluarFSET() {
+  const C19 = parseFloat(document.getElementById("c19").value) || 0;
+  const C20 = parseFloat(document.getElementById("c20").value) || 0;
+  const C21 = parseFloat(document.getElementById("c21").value) || 0;
+  const C23 = parseFloat(document.getElementById("c23").value) || 0;
+  const C24 = parseFloat(document.getElementById("c24").value) || 0;
+  const C26 = parseFloat(document.getElementById("c26").value) || 0;
+
+  const C25 = C23 + C24;
+
+  let E17 = "OK";
+  if (C19 * C25 > C20 * (C26/100 - C21/100)) E17 = "⚠ Llamar Guardia";
+
+  document.getElementById("c25").value = C25;
+  mostrarResultado("resultado-aspeba-tras", E17);
+}
+
+// Función para descargar PDF
+async function descargarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const pageWidth = 210;
+  const margin = 10;
+  const tableWidth = pageWidth - 2 * margin;
+  const lineHeight = 6;
+  let y = 35;
+
+  // --- ENCABEZADO ---
+  doc.setFontSize(18);
+  doc.setTextColor(0, 51, 153);
+  doc.text("Priorización de Llamadas Guardia OVE - ZF", margin, 20);
+
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text(`Generado: ${new Date().toLocaleString()}`, pageWidth - margin, 20, { align: "right" });
+  doc.line(margin, 25, pageWidth - margin, 25);
+
+  // --- FUNCION PARA GENERAR TABLAS Y OBSERVACIONES ---
+  function agregarTabla(campos, titulo, resElemento, obsElemento) {
+    if (y + 50 > 285) { doc.addPage(); y = 20; }
+
+    // Cabecera
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(titulo, margin, y);
+    y += 6;
+
+    doc.setFontSize(11);
+    doc.setFillColor(0, 123, 255);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(margin, y, tableWidth, lineHeight, 'F');
+    doc.setDrawColor(0);
+    doc.rect(margin, y, tableWidth, lineHeight);
+    doc.text("Campo", margin + 2, y + 4.5);
+    doc.text("Valor", margin + tableWidth - 45, y + 4.5);
+    y += lineHeight;
+
+    // Filas
+    campos.forEach((id, index) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      let valor = el.options ? el.options[el.selectedIndex].text : (el.value || "—");
+      if (id === "c2") valor = valor.toUpperCase() === "SI" ? "OVE2" : "OVE1";
+
+      const label = el.parentElement.querySelector("label")?.innerText || id;
+
+      doc.setFillColor(index % 2 === 0 ? 240 : 255);
+      doc.rect(margin, y, tableWidth, lineHeight, 'F');
+      doc.setDrawColor(0);
+      doc.rect(margin, y, tableWidth, lineHeight);
+
+      const linesLabel = doc.splitTextToSize(label, tableWidth - 50);
+      const linesValor = doc.splitTextToSize(valor, 40);
+      const maxLines = Math.max(linesLabel.length, linesValor.length);
+
+      for (let i = 0; i < maxLines; i++) {
+        doc.setTextColor(0, 0, 0);
+        doc.text(linesLabel[i] || '', margin + 2, y + 4 + i * 5);
+        doc.text(linesValor[i] || '', margin + tableWidth - 45, y + 4 + i * 5);
+      }
+      y += lineHeight * maxLines;
+      if (y > 260) { doc.addPage(); y = 20; }
+    });
+
+    // Resultado
+    if (resElemento) {
+      y += 4;
+      const res = document.getElementById(resElemento)?.innerText || "—";
+      let colorRes = [40, 167, 69];
+      if (res.toLowerCase().includes("llamar")) colorRes = [220, 53, 69];
+      else if (res.toLowerCase().includes("valorar")) colorRes = [255, 193, 7];
+
+      y += 5;
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Resultado:", margin, y);
+      doc.setTextColor(...colorRes);
+      doc.text(res, margin + 50, y);
+      y += 10;
+    }
+
+    // Observaciones
+    if (obsElemento) {
+      const obs = document.getElementById(obsElemento)?.value || "";
+      if (obs.trim()) {
+        y += 2;
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text("Observaciones:", margin, y);
+        y += 6;
+        const linesObs = doc.splitTextToSize(obs, tableWidth);
+        linesObs.forEach(line => {
+          if (y > 275) { doc.addPage(); y = 20; }
+          doc.text(line, margin, y);
+          y += 6;
+        });
+        y += 8;
+      }
+    }
+  }
+
+  // --- GENERAR TABLAS ---
+  agregarTabla(["c2","c4","c5","c6","c7","c8","c10","c11","c12","c13","c14"], "Respuestas formulario ZF", "resultado-iris", "obs-zf");
+
+  const resZF = document.getElementById("resultado-iris").innerText || "";
+  if(resZF.toLowerCase().includes("valorar")){
+    agregarTabla(["c18","c19","c20","c21","c23","c24","c25","c26"], "Respuestas formulario FSET", "resultado-aspeba-tras", "obs-fset");
+  }
+
+  // --- PIE DE PÁGINA ---
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text(`Sistema de Priorización OVE - Michelin © ${new Date().getFullYear()}`, pageWidth/2, 285, {align:"center"});
+
+  // --- GUARDADO CON OPCIÓN DE CARPETA SIN DESCARGA AUTOMÁTICA ---
+  if ('showSaveFilePicker' in window) {
+    const nombreArchivo = `Priorizacion_Guardia_ZF_${new Date().toISOString().slice(0,10)}.pdf`;
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: nombreArchivo,
+        startIn: 'documents',
+        types:[{description:'PDF', accept:{'application/pdf':['.pdf']}}]
+      });
+      if (!handle) return; // usuario canceló
+      const writable = await handle.createWritable();
+      await writable.write(await doc.output("blob"));
+      await writable.close();
+      alert("PDF guardado correctamente");
+    } catch(err) {
+      if(err.name === "AbortError") return; // Canceló
+      console.error("Error al guardar PDF:", err);
+    }
+  } else {
+    alert("Tu navegador no soporta guardar en ruta personalizada.");
+  }
+}
+
+["c5","c6","c7","c10","c11","c14"].forEach(id => document.getElementById(id).addEventListener("input", evaluarZF));
+["c19","c20","c21","c23","c24","c26"].forEach(id => document.getElementById(id).addEventListener("input", evaluarFSET));
+
+document.getElementById("anio-footer").textContent = new Date().getFullYear();
+
+</script>
+</body>
+</html>
