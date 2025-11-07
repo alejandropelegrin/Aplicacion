@@ -244,7 +244,7 @@
 
         // Evaluación de Llamar Guardia
         if (num && sat && codigoSolo.value) {
-          const llamar = (parseInt(num) < f.minNum) || (parseFloat(sat) < f.minSat) || (codigoSolo.value === "si" && paletizar.value === "no");
+          const llamar = (parseInt(num) < f.minNum) || (parseFloat(sat) > f.minSat) || (codigoSolo.value === "si" && paletizar.value === "no");
           mostrarBadge(div, llamar);
         } else {
           const badge = div.querySelector(".resultado");
@@ -432,3 +432,4 @@
 
 
 </html>
+
