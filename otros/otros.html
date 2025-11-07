@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Otros - Priorización de Llamadas de Guardia OVE</title>
+  <link rel="icon" type="image/png" href="michelin.png" sizes="32x32">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .section-header {
+      background-color: #007bff;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.5rem;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .card {
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("michelin.png") no-repeat center center;
+      background-size: contain;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary,
+    .btn-success,
+    .btn-danger {
+      min-width: 120px;
+    }
+
+    .btn-plano {
+      background: none;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 1.2rem;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">
+      <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+      Priorización de Llamadas de Guardia OVE
+      <img src="michelin.png" alt="Logo Michelin" style="height:50px; vertical-align:middle; margin-right:10px;">
+    </h1>
+
+    <h3 class="mb-4 text-center" id="titulo-pagina">OTROS</h3>
+
+    <div class="mb-4 text-center">
+      <a href="aspeba.html" class="btn btn-primary me-2">ASPEBA</a>
+      <a href="zf.html" class="btn btn-primary me-2">ZF</a>
+      <a href="fset.html" class="btn btn-primary me-2">FSET</a>
+      <a href="paletizado.html" class="btn btn-primary me-2">Paletizado</a>
+      <a class="btn btn-primary me-2">Otros</a>
+    </div>
+
+    <div class="card p-4 position-relative">
+      <div class="section-header">
+        <span id="nombre-seccion">Otros</span>
+        <button class="btn-plano" onclick="descargarPDF()" title="Descargar PDF">💾</button>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Taller:</label>
+          <select id="taller" class="form-select">
+            <option value="OVE 1">OVE 1</option>
+            <option value="OVE 2">OVE 2</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-6">
+          <label class="form-label">Nombre de la máquina:</label>
+          <input type="text" id="nombre-maquina" class="form-control" placeholder="Introduce el nombre de la máquina"
+            oninput="actualizarTitulo()">
+        </div>
+      </div>
+
+      <div class="mb-3 mt-3">
+        <label class="form-label">Observaciones:</label>
+        <textarea id="observaciones" class="form-control" rows="4"
+          placeholder="Observaciones del formulario"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-3" style="color: #555; font-size: 0.9rem;">
+    Sistema de Priorización OVE - Michelin © <span id="anio-footer"></span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  // Actualizar el título según el nombre de la máquina
+  function actualizarTitulo() {
+    const nombre = document.getElementById("nombre-maquina").value.trim() || "OTROS";
+    document.getElementById("titulo-pagina").textContent = nombre.toUpperCase();
+    document.getElementById("nombre-seccion").textContent = nombre || "Otros";
+  }
+
+  window.onload = () => {
+    document.getElementById("anio-footer").textContent = new Date().getFullYear();
+    actualizarTitulo();
+  };
+
+  // --- FUNCIÓN DE DESCARGA PDF ---
+  async function descargarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const pageWidth = 210;
+    const margin = 10;
+    const tableWidth = pageWidth - 2 * margin;
+    const lineHeight = 6;
+    let y = 40;
+
+    // --- ENCABEZADO ---
+    const nombreMaquina = document.getElementById("nombre-maquina").value.trim() || "OTROS";
+    doc.setFontSize(18);
+    doc.setTextColor(0, 51, 153);
+    doc.text(`Priorización de Llamadas Guardia OVE - ${nombreMaquina}`, margin, 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString()}`, pageWidth - margin, 28, { align: "right" });
+    doc.line(margin, 33, pageWidth - margin, 33);
+
+    // --- FORMULARIO ACTUAL ---
+    const taller = document.getElementById("taller").value;
+    const obsText = document.getElementById("observaciones").value || "";
+
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Formulario ${nombreMaquina}`, margin, y);
+    y += 6;
+
+    // --- Cabecera de tabla ---
+    doc.setFontSize(11);
+    doc.setFillColor(0, 123, 255);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(margin, y, tableWidth, lineHeight, 'F');
+    doc.rect(margin, y, tableWidth, lineHeight);
+    doc.text("Campo", margin + 2, y + 4.5);
+    doc.text("Valor", margin + tableWidth - 45, y + 4.5);
+    y += lineHeight;
+
+    // --- Campos del formulario ---
+    const fields = [
+      { label: "Taller", value: taller },
+      { label: "Nombre de la máquina", value: nombreMaquina },
+    ];
+
+    fields.forEach((f, index) => {
+      doc.setFillColor(index % 2 === 0 ? 240 : 255);
+      doc.rect(margin, y, tableWidth, lineHeight, 'F');
+      doc.rect(margin, y, tableWidth, lineHeight);
+
+      const linesLabel = doc.splitTextToSize(f.label, tableWidth - 50);
+      const linesValor = doc.splitTextToSize(f.value, 40);
+      const maxLines = Math.max(linesLabel.length, linesValor.length);
+
+      for (let i = 0; i < maxLines; i++) {
+        doc.setTextColor(0, 0, 0);
+        doc.text(linesLabel[i] || '', margin + 2, y + 4 + i * 5);
+        doc.text(linesValor[i] || '', margin + tableWidth - 45, y + 4 + i * 5);
+      }
+
+      y += lineHeight * maxLines;
+      if (y > 260) { doc.addPage(); y = 20; }
+    });
+
+    y += 10;
+
+    // --- OBSERVACIONES (nuevo formato profesional) ---
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Observaciones:", margin, y);
+    y += 6;
+
+    if (obsText.trim()) {
+      const linesObs = doc.splitTextToSize(obsText, tableWidth - 6);
+      const boxHeight = Math.min(70, linesObs.length * 6 + 6);
+      doc.setFillColor(248, 249, 250);
+      doc.roundedRect(margin, y, tableWidth, boxHeight, 3, 3, 'F');
+      doc.setTextColor(60);
+      doc.text(linesObs, margin + 3, y + 7);
+      y += boxHeight + 6;
+    } else {
+      doc.setFontSize(11);
+      doc.setTextColor(120);
+      doc.text("— Sin observaciones —", margin + 2, y + 6);
+      y += 14;
+    }
+
+    // --- PIE DE PÁGINA ---
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Sistema de Priorización OVE - Michelin © ${new Date().getFullYear()}`, pageWidth / 2, 285, { align: "center" });
+
+    // --- GUARDAR PDF ---
+    const nombreArchivo = `Priorizacion_Guardia_${nombreMaquina.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: nombreArchivo,
+          startIn: 'documents',
+          types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+        });
+        if (!handle) return;
+        const writable = await handle.createWritable();
+        await writable.write(await doc.output("blob"));
+        await writable.close();
+        alert("PDF guardado correctamente");
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error("Error al guardar PDF:", err);
+      }
+    } else {
+      doc.save(nombreArchivo);
+    }
+  }
+</script>
+
+</body>
+
+</html>
