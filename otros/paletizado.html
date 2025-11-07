@@ -282,7 +282,7 @@
 
         if (numRobots && saturacion && codigoSolo) {
           const llamar = (parseInt(numRobots) < f.minNum) ||
-                        (parseFloat(saturacion) < f.minSat) ||
+                        (parseFloat(saturacion) > f.minSat) ||
                         (codigoSolo === "si" && paletizarOtro === "no");
 
           mostrarBadge(div, llamar);
@@ -455,3 +455,4 @@
 
 
 </html>
+
