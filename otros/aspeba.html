@@ -541,8 +541,13 @@
         );
       } else {
         if (resIRIS !== "OK" || c2 === "SI") {
+          let camposIRIS = ["c7", "c8", "c9", "c11"];
+          // Solo añadir c12 si c11 = SI
+          if (document.getElementById("c11").value === "SI") {
+              camposIRIS.push("c12");
+          }
           agregarTabla(
-            ["c7","c8","c9","c11","c12"],
+            camposIRIS,
             "Formulario IRIS",
             "resultado-iris",
             "obs-iris"
@@ -589,13 +594,21 @@
     // Eventos
     document.getElementById("c4").addEventListener("input", calcularC24);
     document.getElementById("c23").addEventListener("input", calcularC24);
-    ["c7", "c8", "c9", "c11", "c12"].forEach(id => { document.getElementById(id).addEventListener("input", evaluarIRIS); document.getElementById(id).addEventListener("change", evaluarIRIS); });
+    function evaluarIRIS_wrapper() {
+      sincronizarC9();
+      evaluarIRIS();
+    }
+
+    ["c7", "c8", "c9", "c11", "c12", "c4"].forEach(id => {
+      document.getElementById(id).addEventListener("input", evaluarIRIS_wrapper);
+      document.getElementById(id).addEventListener("change", evaluarIRIS_wrapper);
+    });
+
     ["c16", "c17", "c18", "c29"].forEach(id => { document.getElementById(id).addEventListener("input", evaluarAspebaTrasFalloIRIS); document.getElementById(id).addEventListener("change", evaluarAspebaTrasFalloIRIS); });
     ["c25", "c26", "c29"].forEach(id => { document.getElementById(id).addEventListener("input", evaluarAspebaTransistica); document.getElementById(id).addEventListener("change", evaluarAspebaTransistica); });
 
     document.getElementById("anio-footer").textContent = new Date().getFullYear();
   </script>
 </body>
-
 
 </html>
