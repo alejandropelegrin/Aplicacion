@@ -398,13 +398,31 @@
     function evaluarAspebaTrasFalloIRIS() {
       const c15 = calcularC15();
       const c16 = parseFloat(document.getElementById("c16").value) || 0;
-      const c17 = parseFloat(document.getElementById("c17").value) || 0;
-      const c18 = parseFloat(document.getElementById("c18").value) || 0;
+      const c17Raw = document.getElementById("c17").value.trim();
+      const c18Raw = document.getElementById("c18").value.trim();
       const c29 = document.getElementById("c29").value;
       const resultadoIRIS = document.getElementById("resultado-iris").innerText || "";
 
+      // Diferenciar entre campo vacío y valor 0 explícito
+      const c17 = (c17Raw === "") ? null : (parseFloat(c17Raw) || 0);
+      const c18 = (c18Raw === "") ? null : (parseFloat(c18Raw) || 0);
+
       let resultado = "OK";
-      if (c17 > 0 && c18 > 0 && resultadoIRIS.includes("Valorar ASPEBA") && (c15 > c16 * Math.min(c17, c18))) resultado = "⚠ Llamar Guardia";
+
+      // Determinar el número de puestos disponibles:
+      // - si ambos campos están rellenados (incluso si uno es 0), usar el mínimo (factor limitante)
+      // - si solo uno está rellenado, usar ese valor
+      // - si ninguno está rellenado, considerar 0
+      let puestosDisponibles = 0;
+      if (c17 !== null && c18 !== null) {
+        puestosDisponibles = Math.min(c17, c18);
+      } else if (c17 !== null) {
+        puestosDisponibles = c17;
+      } else if (c18 !== null) {
+        puestosDisponibles = c18;
+      }
+
+      if (resultadoIRIS.includes("Valorar ASPEBA") && (c15 > c16 * puestosDisponibles)) resultado = "⚠ Llamar Guardia";
       if (c29 === "NO") resultado = "⚠ Llamar Guardia";
       mostrarResultado("resultado-aspeba-tras", resultado);
     }
